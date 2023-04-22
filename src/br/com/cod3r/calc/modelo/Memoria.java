@@ -6,7 +6,7 @@ import java.util.List;
 public class Memoria {
 
 	private enum TipoComando {
-		ZERAR, NUMERO, DIV, MULT, SOMA, SUB, IGUAL, VIRGULA
+		ZERAR, SINAL, NUMERO, DIV, MULT, SOMA, SUB, IGUAL, VIRGULA
 	};
 
 	private static final Memoria instancia = new Memoria();
@@ -37,10 +37,14 @@ public class Memoria {
 	public void processarComando(String texto) {
 
 		TipoComando tipocomando = detectarTipoComando(texto);
-		System.out.println(tipocomando);
 
 		if (tipocomando == null) {
 			return;
+		} else if (tipocomando == TipoComando.SINAL && textoAtual.contains("-")) {
+			textoAtual = textoAtual.substring(1);
+		} else if (tipocomando == TipoComando.SINAL && !textoAtual.contains("-")) {
+			textoAtual = "-" + textoAtual;
+
 		} else if (tipocomando == TipoComando.ZERAR) {
 			textoAtual = "";
 			textoBuffer = "";
@@ -62,8 +66,32 @@ public class Memoria {
 	}
 
 	private String obterResultadoOperacao() {
-		// TODO Auto-generated method stub
-		return textoAtual;
+		if (ultimaOperacao == null || ultimaOperacao == TipoComando.IGUAL) {
+			return textoAtual;
+		}
+
+		double numeroBuffer = Double.parseDouble(textoBuffer.replace(",", "."));
+		double numeroatual = Double.parseDouble(textoAtual.replace(",", "."));
+		double resultado = 0;
+
+		if (ultimaOperacao == TipoComando.SOMA) {
+			resultado = numeroBuffer + numeroatual;
+
+		} else if (ultimaOperacao == TipoComando.SUB) {
+			resultado = numeroBuffer - numeroatual;
+
+		} else if (ultimaOperacao == TipoComando.MULT) {
+			resultado = numeroBuffer * numeroatual;
+
+		} else if (ultimaOperacao == TipoComando.DIV) {
+			resultado = numeroBuffer / numeroatual;
+
+		}
+
+		String resultadoString = Double.toString(resultado).replace(".", ",");
+		boolean inteiro = resultadoString.endsWith(",0");
+
+		return inteiro ? resultadoString.replace(",0", "") : resultadoString;
 	}
 
 	private TipoComando detectarTipoComando(String texto) {
@@ -91,6 +119,9 @@ public class Memoria {
 
 			} else if ("=".equals(texto)) {
 				return TipoComando.IGUAL;
+
+			} else if ("±".equals(texto)) {
+				return TipoComando.SINAL;
 
 			} else if (",".equals(texto) && !textoAtual.contains(",")) {
 				return TipoComando.VIRGULA;
